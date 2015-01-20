@@ -1,0 +1,6 @@
+enum34==1.0.4
+numpy==1.9.1
+requests==2.5.1
+scipy==0.15.0
+SQLAlchemy==0.9.8
+xlrd==0.9.3
