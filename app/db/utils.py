@@ -50,3 +50,15 @@ def traded_prods(dates=[], prod_ids=[]):
         q = q.filter(tables.Level.prod_id.in_(prod_ids))
 
     return q.all()
+
+def prod_count_by_typ(prod_table):
+    q = session.query(prod_table.typ, func.count(prod_table.typ)
+                    ).group_by(prod_table.typ)
+    return q.all()
+
+def level_count_by_date(start_date):
+    q = session.query(tables.Level.date, func.count(tables.Level.date)
+                ).filter(tables.Level.date >= start_date
+                ).group_by(tables.Level.date)
+    return q.all()
+    

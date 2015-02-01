@@ -1,0 +1,29 @@
+<nav class="navbar navbar-default">
+  <form class="navbar-form navbar-left" ng-submit="set_asof(date)">
+    <input type="text" class="form-control" ng-model="date">
+    <button class="btn btn-default" type="button">Set</button>
+  </form>
+</nav>
+
+<div class="row">
+  <div class="col-sm-6">
+    <table class="table">
+      <tr>
+	<th ng-repeat="header in data.params.header">{{header}}</th>
+      </tr>
+      <tr ng-repeat="row in data.params.rows">
+	<td ng-repeat="val in row">{{val}}</td>
+      </tr>
+    </table>
+    <img ng-src="/static/img/yc_{{asof}}.png" class="img-responsive">
+  </div>
+  <div class="col-sm-6">
+    <table class="table">
+      <tr>
+	<th ng-repeat="header in data.model_fit.header">{{header}}</th>
+      </tr>
+      <tr ng-repeat="row in data.model_fit.rows">
+	<td ng-repeat="val in row">{{val}}</td>
+      </tr>
+    </table>
+  </div>

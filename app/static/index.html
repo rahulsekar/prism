@@ -6,42 +6,21 @@
 --->
 <link rel="stylesheet" type="text/css" href="/static/bootstrap.min.css">
 <script src="/static/angular.min.js"></script>
+<script src="/static/angular-route.min.js"></script>
 </head>
 <title>Prism</title>
 <body>
-
-<div ng-app="prism" ng-controller="prismCtrl">
-<nav class="navbar navbar-default">
-  <form class="navbar-form navbar-left" role="search" ng-submit="set_asof(asof)">
-    <div class="form-group">
-      <input type="text" class="form-control" ng-model="asof">
-    </div>
-    <button type="submit" class="btn btn-default">Go</button>
-  </form>
-</nav>
-<br><br>
-<img src="/static/img/yc_{{ycdate}}.png">
-<table class="table table-striped">
-  <tr>
-    <th>Type</th>
-    <th>Symbol</th>
-    <th>Coupon</th>
-    <th>Maturity</th>
-    <th>Price</th>
-    <th>YTM</th>
-    <th>Duration</th>
-  </tr>
-  <tr ng-repeat="x in bnds | orderBy: 'maturity'">
-    <td>{{x.type}}</td>
-    <td>{{x.symbol}}</td>
-    <td>{{x.coupon}}%</td>
-    <td>{{x.maturity}}</td>
-    <td>{{x.price}}</td>
-    <td>{{x.YTM}}</td>
-    <td>{{x.duration}}</td>
-  </tr>
-</table>
-</div>
-</body>--->
+  <div ng-app="prism" ng-controller="MainController">
+    <nav class="navbar navbar-default">
+      <div class="navbar-brand">Prism</div>
+      <ul class="nav nav-pills">
+	<li ng-class="{active:isactive('/data_status')}"><a href="#/data_status">Data</a></li>
+	<li ng-class="{active:isactive('/yield_curve')}"><a href="#/yield_curve">Yield Curve</a></li>
+	<li ng-class="{active:isactive('/options')}"><a href="#">Options</a></li>
+      </ul>
+    </nav>
+    <div ng-view></div>
+  </div><!---ng-app--->
+</body>
 <script src="/static/prism.js"></script>
 </html>

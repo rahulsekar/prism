@@ -5,7 +5,7 @@ from scipy import optimize
 from app import db
 import utils, disc_curve, asof
 
-class Bond:
+class Bond(object):
 
     def __init__(self, prod):
         self.prod = prod
@@ -49,7 +49,7 @@ class Bond:
         return ret
 
     def accrued_interest(self):
-        
+
         if not self.prod.coupon_freq:
             return 0
 
@@ -60,8 +60,9 @@ class Bond:
             cur = nxt
             nxt = utils.add_months(cur, add)
 
+        settle_date = asof.date + datetime.timedelta(days=1)
         return self.prod.coupon / self.prod.coupon_freq *\
-            (asof.date - cur).days / (nxt - cur).days
+            (settle_date- cur).days / (nxt - cur).days
 
     def NPV(self, DiscCurve):
         ret = 0
@@ -75,7 +76,7 @@ class Bond:
                 disc_curve.ConstDC(r)) / self.dirty_price - 1.0,
             0.0001, # 1bps
             1.0, # 10000bps
-        )        
+        )
         return 2.0 * (math.sqrt(1.0 + apr) - 1.0) # BEY
 
     def modified_duration(self):
