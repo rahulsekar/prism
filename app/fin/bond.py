@@ -10,22 +10,11 @@ class Bond(object):
     def __init__(self, prod):
         self.prod = prod
         self.clean_price = db.utils.prices(asof.date,
-                                           [prod.prod_id])[0][0]
+                                           [prod.prod_id]).values()[0]
         self.dirty_price = self.clean_price +\
                            self.accrued_interest()
         self.ytm = self.yield_to_maturity()
 
-    def to_dict(self):
-        return {
-            'type' : self.prod.typ,
-            'symbol' : self.prod.symbol,
-            'coupon' : '%.3f' % self.prod.coupon,
-            'maturity' : self.prod.maturity.__str__(),
-            'price' : '%.3f' % self.dirty_price,
-            'YTM' : '%.3f' % (100 * self.yield_to_maturity()),
-            'duration' : '%.2f' % self.modified_duration(),
-            }
-            
     def cashflows(self):
 
         mat = self.prod.maturity

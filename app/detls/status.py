@@ -5,9 +5,6 @@ from app import db
 from app.consts import ProdType
 from app.config import JSON_DIR
 
-def data_file():
-    return '%s/data_status.json' % JSON_DIR
-
 def levels(days=30):
     start_date = datetime.date.today() - datetime.timedelta(days=days)
     avail = dict((x,y)
@@ -45,15 +42,9 @@ def prods():
 
 def generate():
     as_of = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    jsondump = json.dumps({
+    return json.dumps({
         'prods' : prods(),
         'levels' : levels(),
         'asof' : as_of
     })
-    fh = open(data_file(), 'w')
-    fh.write(jsondump)
-    fh.close()
 
-def check_generate():
-    if not os.path.isfile(data_file()):
-        generate()

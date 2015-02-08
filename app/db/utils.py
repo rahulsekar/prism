@@ -23,10 +23,11 @@ def max_prod_id():
     ])
 
 def prices(date, prod_ids):
-    return session.query(tables.Level.value).filter(
-        tables.Level.prod_id.in_(prod_ids),
-        tables.Level.date == date).all()
-
+    res = session.query(tables.Level.prod_id,tables.Level.value
+                    ).filter(tables.Level.prod_id.in_(prod_ids),
+                             tables.Level.date == date).all()
+    return dict(res)
+    
 def debt_prods(prod_ids=[], typs=[], symbols=[], coupons=[]):
     q = session.query(tables.Debt)
 
@@ -38,6 +39,19 @@ def debt_prods(prod_ids=[], typs=[], symbols=[], coupons=[]):
         q = q.filter(tables.Debt.symbol.in_(symbols))
     if len(coupons):
         q = q.filter(tables.Debt.coupon.in_(coupons))
+
+    return q.all()
+
+def eq_prods(prod_ids=[], typs=[], symbols=[], exp_after=None):
+    q = session.query(tables.Equity)
+    if len(prod_ids):
+        q = q.filter(tables.Equity.prod_id.in_(prod_ids))
+    if len(typs):
+        q = q.filter(tables.Equity.typ.in_(typs))
+    if len(symbols):
+        q = q.filter(tables.Equity.symbol.in_(symbols))
+    if exp_after != None:
+        q = q.filter(tables.Equity.expiry >= exp_after)
 
     return q.all()
 

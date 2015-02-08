@@ -16,5 +16,3 @@ def get_traded_treasury_bonds():
 
     return [bond.Bond(prod) for prod in prods
             if prod.prod_id in traded]
-    
-    

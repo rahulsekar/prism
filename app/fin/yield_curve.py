@@ -40,8 +40,7 @@ def model_fit_table(bnds_to_fit, dc):
 def save_plot(dc):
     sample_dates = [asof.date + datetime.timedelta(days=90*i)
                     for i in range(1, 120)]
-    sample_rates = [sample_rate(dt, dc.DF(dt))
-                    for dt in sample_dates]
+    sample_rates = [100 * dc.ZCR(dt) for dt in sample_dates]
     plt.clf()
     plt.plot(sample_dates, sample_rates)
     plt.ylabel('rate (%)')
@@ -51,7 +50,7 @@ def save_plot(dc):
 def generate(date):
     asof.date = date
     bnds_to_fit = bondfns.get_traded_treasury_bonds()
-    dc = disc_curve.NelsonSiegel(bnds_to_fit)
+    dc = disc_curve.NelsonSiegel()
     
     save_plot(dc)
     jsondump = json.dumps({

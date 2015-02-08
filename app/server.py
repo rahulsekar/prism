@@ -17,10 +17,9 @@ def yc(asofstr):
     yield_curve.check_generate(asofdate)
     return 'OK'
 
-@app.route('/prepare/data_status')
+@app.route('/data_status')
 def data_status():
-    status.check_generate()
-    return 'OK'
+    return status.generate()
 
 @app.route('/prepare/data_load/<asofstr>')
 def data_load(asofstr):

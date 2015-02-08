@@ -4,17 +4,24 @@ from scipy import optimize
 import numpy as np
 
 #locals
-import asof
+import asof, bondfns
 
 class DiscountCurve(object):
     
     def DF(self, date):
         raise Exception('Unimplemented')
 
+    def ZCR(self, date):
+        yrs = (date - asof.date).days / 365.0
+        return math.pow(self.DF(date), -1.0 / yrs) - 1.0
+
 class ConstDC(DiscountCurve):
 
     def __init__(self, r):
         self.r = r
+
+    def ZCR(self, date):
+        return r
 
     def DF(self, date):
         return math.pow(1.0 + self.r,
@@ -22,7 +29,10 @@ class ConstDC(DiscountCurve):
 
 class DCFromBonds(DiscountCurve):
 
-    def __init__(self, bnds):
+    def __init__(self, bnds=[]):
+
+        if not len(bnds):
+            bnds = bondfns.get_traded_treasury_bonds()
 
         popt, pcov = optimize.curve_fit(
             self.calibrate_func,

@@ -18,34 +18,36 @@ app.controller("MainController", function($scope, $route, $routeParams, $locatio
 })
 
 app.controller("DataStatusController", function($scope, $http, $route){
-    $scope.load = function(date){
-	var prepare = "/prepare/data_load/" + date
-	$http.get(prepare).success(function(response){
-	    $route.reload()
+
+    $scope.status = function(){
+	var status_json_page = "/data_status"
+	$http.get(status_json_page).success(function(response){
+	    $scope.data=response
 	})
     }
 
-    var json = "/static/json/data_status.json"
-    var prepare = "/prepare/data_status"
-    $http.get(prepare).success(function(response){
-	$http.get(json).success(function(response){
-	    $scope.data=response
-	})
-    })
+    $scope.load = function(date){
+	var prepare = "/prepare/data_load/" + date
+	$http.get(prepare).success(function(response){$scope.status()})
+    }
+
+    $scope.status()
 })
 
 app.controller("YCController", function($scope, $route, $routeParams, $location, $http){
     $scope.set_asof = function(date){
 	if( $scope.asof != date ){
 	    $scope.date = $scope.asof = date
+	    $scope.data = ''
 	    var json = "/static/json/yc_" + $scope.asof + ".json"
 	    var prepare = "/prepare/yield_curve/" + $scope.asof
 	    $http.get(prepare).success(function(response){
 		$http.get(json).success(function(response){
 		    $scope.data=response
 		})
-	    })
+	    })		
 	}
     }
-    $scope.set_asof("2015-01-09")
+    var d = new Date()
+    $scope.set_asof(d.toJSON().split('T')[0])
 })
