@@ -3,7 +3,7 @@ import datetime
 from dateutil import relativedelta as rd
 from matplotlib import pyplot as plt
 #locals
-import bondfns, disc_curve
+from app.fin import bondfns, disc_curve
 
 def generate():
     gsecs = bondfns.get_gsec_securities()

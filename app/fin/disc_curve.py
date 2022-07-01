@@ -3,7 +3,7 @@ import datetime
 from scipy import optimize
 import numpy as np
 #local
-import base
+from app.fin import base
 
 _DAYS_IN_YEAR = 365.0
 

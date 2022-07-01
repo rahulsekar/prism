@@ -3,7 +3,7 @@ from dateutil.relativedelta import relativedelta
 from scipy import optimize
 
 #locals
-import disc_curve, base
+from app.fin import disc_curve, base
 
 
 class Bond(base.Product):
