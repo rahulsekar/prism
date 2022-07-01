@@ -1,49 +1,42 @@
-import datetime
 import math
+import datetime
 from scipy import optimize
 import numpy as np
+#local
+import base
 
-#locals
-import asof, bondfns
+_DAYS_IN_YEAR = 365.0
 
-class DiscountCurve(object):
-    
-    def DF(self, date):
-        raise Exception('Unimplemented')
 
-    def ZCR(self, date):
-        yrs = (date - asof.date).days / 365.0
-        return math.pow(self.DF(date), -1.0 / yrs) - 1.0
-
-class ConstDC(DiscountCurve):
-
+class ConstDC(base.DiscountCurve):
     def __init__(self, r):
         self.r = r
 
-    def ZCR(self, date):
-        return r
+    def yld(self, dt, from_date: datetime.date = datetime.datetime.now()):
+        return self.r
 
-    def DF(self, date):
-        return math.pow(1.0 + self.r,
-                        (asof.date - date).days / 365.0)
+    def discount_factor(self, dt: datetime.date, from_date: datetime.date = datetime.datetime.now()):
+        return math.pow(1.0 + self.r, (from_date - dt).days / _DAYS_IN_YEAR)
 
-class DCFromBonds(DiscountCurve):
 
-    def __init__(self, bnds=[]):
+class DCFromBonds(base.DiscountCurve):
 
-        if not len(bnds):
-            bnds = bondfns.get_traded_treasury_bonds()
-
+    def __init__(self, bnd_secs: list):
         popt, pcov = optimize.curve_fit(
             self.calibrate_func,
-            bnds,
-            [bnd.dirty_price for bnd in bnds],
-            self.init_params_guess())
+            {'bnd_secs': bnd_secs},
+            np.array([bnd_sec.price for bnd_sec in bnd_secs]),
+            self.init_params_guess()
+        )
         self.set_params(*popt)
 
-    def calibrate_func(self, bnds, *params):
+    def yld(self, dt, from_date: datetime.date = datetime.date.today()):
+        yrs = (dt - from_date).days / _DAYS_IN_YEAR
+        return math.pow(self.discount_factor(dt, from_date), -1.0 / yrs) - 1.0
+
+    def calibrate_func(self, bnd_secs, *params):
         self.set_params(*params)
-        return [bnd.NPV(self) for bnd in bnds]
+        return [bnd_sec.product.npv(self, bnd_sec.asof_date) for bnd_sec in bnd_secs['bnd_secs']]
 
     def set_params(self, *params):
         raise Exception('Unimplemented')
@@ -51,8 +44,8 @@ class DCFromBonds(DiscountCurve):
     def init_params_guess(self):
         raise Exception('Unimplemented')
 
-class NelsonSiegel(DCFromBonds):
 
+class NelsonSiegel(DCFromBonds):
     def set_params(self, b0, b1, b2, tau):
         self.b0 = b0
         self.b1 = b1
@@ -62,8 +55,8 @@ class NelsonSiegel(DCFromBonds):
     def init_params_guess(self):
         return [0.05, 0.0, 0.0, 2.0]
 
-    def DF(self, date):
-        yrs = (date - asof.date).days / 365.0
+    def discount_factor(self, dt: datetime.date, from_date: datetime.date = datetime.datetime.now()):
+        yrs = (dt - from_date).days / 365.0
         m_tau = yrs / self.tau # m / tau
         exp_m_tau = np.exp(-m_tau)
         rate = self.b0 +\
