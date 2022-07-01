@@ -1,15 +1,25 @@
-import json, datetime
+import pandas as pd
+import datetime
 from dateutil import relativedelta as rd
-
+from matplotlib import pyplot as plt
 #locals
 import bondfns, disc_curve
 
 def generate():
-    bnds_secs = bondfns.get_gsec_securities()
-    dc = disc_curve.NelsonSiegel(bnds_secs)
+    gsecs = bondfns.get_gsec_securities()
+    # print(len(gsecs))
+    data = []
+    for gsec in gsecs:
+        p = gsec.product
+        data.append([p.symbol, p.coupon_pct, p.maturity_date, gsec.price, p.yield_to_maturity(gsec.price)])
+    df = pd.DataFrame(data, columns=["sym", "cpn", "mat", "prc", "ytm"])
+    print(df)
+    filtered_gsecs = [gsec for gsec in gsecs if 0.01 <= gsec.product.yield_to_maturity(gsec.price) <= 20]
+    dc = disc_curve.NelsonSiegel(filtered_gsecs)
 
-    durs = [rd.relativedelta(days=x) for x in [1, 30, 91, 182, 365, 365*3, 365*5, 365*10]]
-    dts = [datetime.date.today() + dur for dur in durs]
-    print([(str(dt), dc.yld(dt)) for dt in dts])
+    days = [1, 30, 91, 182, 365, 365 * 3, 365 * 5, 365 * 10, 365 * 20]
+    rts = [dc.yld(datetime.date.today() + rd.relativedelta(days=d)) for d in days]
+    plt.plot(days, rts)
+    plt.show()
 
 generate()

@@ -4,8 +4,8 @@ from io import StringIO
 import datetime
 
 #locals
-from bond import Bond
-from base import Security
+from app.fin.bond import Bond
+from app.fin.base import Security
 
 
 def get_gsec_mktdata():
@@ -64,5 +64,11 @@ def get_gsec_securities():
 # print(info_df)
 # bnds = get_gsec_bonds()
 # print(len(bnds))
-# secs = get_gsec_securities()
-# print(len(secs))
+# gsecs = get_gsec_securities()
+# print(len(gsecs))
+# data = []
+# for gsec in gsecs:
+#   p = gsec.product
+#   data.append([p.symbol, p.coupon_pct, p.maturity_date, gsec.price, p.yield_to_maturity(gsec.price)])
+# df = pd.DataFrame(data, columns=["sym", "cpn", "mat", "prc", "ytm"])
+# print(df)

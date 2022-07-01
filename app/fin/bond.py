@@ -54,8 +54,8 @@ class Bond(base.Product):
         if not self.coupon_freq or dt <= self.issue_date:
             return 0
 
-        dts = self._coupon_dates()
-        mx = max(self.issue_date, max([d for d in dts if d < dt]))
+        dts = list(self._coupon_dates()) + [self.issue_date]
+        mx = max([d for d in dts if d < dt])
         cpn = self.face_value * self.coupon_pct / 100.0 / self.coupon_freq
         prd = 12 / self.coupon_freq * 30
         return cpn * (dt - mx).days / prd
@@ -70,8 +70,8 @@ class Bond(base.Product):
     def yield_to_maturity(self, price: float, asof_date: datetime.date = datetime.date.today()):
         apr = optimize.brentq(
             lambda r: self.npv(disc_curve.ConstDC(r), asof_date) / (price + self.accrued_interest(asof_date)) - 1.0,
-            0.0001, # 1bps
-            1.0, # 10000bps
+            -0.0001, # -1bps
+            100.00, # 1000000bps
         )
         return 2.0 * (math.sqrt(1.0 + apr) - 1.0) # BEY
 
