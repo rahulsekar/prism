@@ -16,7 +16,7 @@ def get_gsec_mktdata():
     # print(resp.status_code)
     raw = resp.json()['data']
     # print(raw[0])
-    filtered = [(x['symbol'], x['faceValue'], x['series'], x['lastPrice']) for x in raw]
+    filtered = [(x['symbol'], x['faceValue'], x['series'], x['lastPrice'] or x['previousClose']) for x in raw]
     df = pd.DataFrame(filtered, columns= ['sym', 'ser', 'fv', 'prc'])
     return df
 
