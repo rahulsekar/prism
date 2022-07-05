@@ -16,7 +16,7 @@ class Bond(base.Product):
                  isin: str = None,
                  symbol: str = None,
                  face_value: float = 100.0,
-    ):
+                 ):
 
         super().__init__(isin)
         self.symbol = symbol
@@ -26,8 +26,12 @@ class Bond(base.Product):
         self.coupon_freq = coupon_freq
         self.face_value = face_value
 
-    def is_price_sane(self, price) -> bool:
-        return 0.1 < price / self.face_value < 10.0
+    def is_price_sane(self, price, asof_date:datetime.date = datetime.date.today()) -> bool:
+        if not 0.1 < price / self.face_value < 10.0:
+            return False
+        y1 = self.npv(disc_curve.ConstDC(-0.99), asof_date) / price - 1.0
+        y2 = self.npv(disc_curve.ConstDC(1.00), asof_date) / price - 1.0
+        return y1*y2 < 0.0
 
     def _coupon_dates(self) -> tuple:
         if not self.coupon_freq:
@@ -75,8 +79,8 @@ class Bond(base.Product):
             return None
         apr = optimize.brentq(
             lambda r: self.npv(disc_curve.ConstDC(r), asof_date) / (price + self.accrued_interest(asof_date)) - 1.0,
-            -0.0001, # -1bps
-            100.00, # 1000000bps
+            -0.99, # -99%
+            1.00, # +100%
         )
         return 2.0 * (math.sqrt(1.0 + apr) - 1.0) # BEY
 
@@ -90,7 +94,7 @@ class Bond(base.Product):
         ret /= (price + self.accrued_interest(asof_date)) * (1.0 + sar)
 
         return ret
-        
+
     def z_spread(self, yield_curve):
         pass
 
