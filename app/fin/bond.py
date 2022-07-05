@@ -26,11 +26,12 @@ class Bond(base.Product):
         self.coupon_freq = coupon_freq
         self.face_value = face_value
 
-    def is_price_sane(self, price, asof_date:datetime.date = datetime.date.today()) -> bool:
+    def is_price_sane(self, price, asof_date:datetime.date = datetime.date.today(),
+                      y_min: float = -0.0001, y_max: float = 0.25) -> bool:
         if not 0.1 < price / self.face_value < 10.0:
             return False
-        y1 = self.npv(disc_curve.ConstDC(-0.99), asof_date) / price - 1.0
-        y2 = self.npv(disc_curve.ConstDC(1.00), asof_date) / price - 1.0
+        y1 = self.npv(disc_curve.ConstDC(y_min), asof_date) / price - 1.0
+        y2 = self.npv(disc_curve.ConstDC(y_max), asof_date) / price - 1.0
         return y1*y2 < 0.0
 
     def _coupon_dates(self) -> tuple:
@@ -75,7 +76,7 @@ class Bond(base.Product):
         return ret
 
     def yield_to_maturity(self, price: float, asof_date: datetime.date = datetime.date.today()):
-        if not self.is_price_sane(price):
+        if not self.is_price_sane(price, asof_date, -0.99, 1.00):
             return None
         apr = optimize.brentq(
             lambda r: self.npv(disc_curve.ConstDC(r), asof_date) / (price + self.accrued_interest(asof_date)) - 1.0,
