@@ -69,8 +69,8 @@ def get_gsec_securities():
 # print(info_df)
 # bnds = get_gsec_bonds()
 # print(len(bnds))
-gsecs = get_gsec_securities()
-print(len(gsecs))
+# gsecs = get_gsec_securities()
+# print(len(gsecs))
 # data = []
 # for gsec in gsecs:
 #   p = gsec.product
