@@ -19,9 +19,10 @@ def get_gsec_mktdata(use_prev_close: bool = False):
     filtered = [(x['symbol'],
                  x['faceValue'],
                  x['series'],
-                 x['lastPrice'] or (x['previousClose'] if use_prev_close else 0)
+                 x['lastPrice'] or (x['previousClose'] if use_prev_close else 0),
+                 x['totalTradedVolume']
                 ) for x in raw]
-    df = pd.DataFrame(filtered, columns= ['sym', 'ser', 'fv', 'prc'])
+    df = pd.DataFrame(filtered, columns= ['sym', 'ser', 'fv', 'prc', 'vol'])
     return df
 
 
