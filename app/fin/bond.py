@@ -75,24 +75,24 @@ class Bond(base.Product):
                 ret += p * dc.discount_factor(d, asof_date)
         return ret
 
-    def yield_to_maturity(self, price: float, asof_date: datetime.date = datetime.date.today()):
-        if not self.is_price_sane(price, asof_date, -0.99, 1.00):
+    def yield_to_maturity(self, dirty_price: float, asof_date: datetime.date = datetime.date.today()):
+        if not self.is_price_sane(dirty_price, asof_date, -0.99, 1.00):
             return None
         apr = optimize.brentq(
-            lambda r: self.npv(disc_curve.ConstDC(r), asof_date) / (price + self.accrued_interest(asof_date)) - 1.0,
+            lambda r: self.npv(disc_curve.ConstDC(r), asof_date) / dirty_price - 1.0,
             -0.99, # -99%
             1.00, # +100%
         )
         return 2.0 * (math.sqrt(1.0 + apr) - 1.0) # BEY
 
-    def modified_duration(self, price, asof_date):
-        sar = self.yield_to_maturity(price, asof_date) / 2.0 #semi-annual rate
+    def modified_duration(self, dirty_price, asof_date):
+        sar = self.yield_to_maturity(dirty_price, asof_date) / 2.0 #semi-annual rate
         ret = 0
         for d, p in self.cashflows().items():
             t = (d - asof_date).days / 365.0 #yrs
             ret += t * p / math.pow((1.0 + sar), 2*t)
 
-        ret /= (price + self.accrued_interest(asof_date)) * (1.0 + sar)
+        ret /= dirty_price * (1.0 + sar)
 
         return ret
 
