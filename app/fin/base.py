@@ -18,7 +18,8 @@ class DiscountCurve:
 
 
 class Security:
-    def __init__(self, p: Product, price: float, asof_date: datetime.date):
+    def __init__(self, p: Product, price: float, asof_date: datetime.date, volume: float):
         self.product = p
         self.price = price
+        self.volume = volume
         self.asof_date = asof_date

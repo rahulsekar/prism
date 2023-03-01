@@ -60,7 +60,7 @@ def get_gsec_securities():
         row = mkt_df[mkt_df.sym == bnd.symbol]
         if len(row) > 0:
             # print(row.iloc[0].prc)
-            ret.append(Security(bnd, row.iloc[0].prc, datetime.date.today()))
+            ret.append(Security(bnd, row.iloc[0].prc, datetime.date.today(), row.iloc[0].vol))
     return ret
 
 # mkt_df = get_gsec_mktdata()
@@ -69,8 +69,8 @@ def get_gsec_securities():
 # print(info_df)
 # bnds = get_gsec_bonds()
 # print(len(bnds))
-# gsecs = get_gsec_securities()
-# print(len(gsecs))
+gsecs = get_gsec_securities()
+print(len(gsecs))
 # data = []
 # for gsec in gsecs:
 #   p = gsec.product
