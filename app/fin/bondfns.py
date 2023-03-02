@@ -20,9 +20,11 @@ def get_gsec_mktdata(use_prev_close: bool = False):
                  x['faceValue'],
                  x['series'],
                  x['lastPrice'] or (x['previousClose'] if use_prev_close else 0),
-                 x['totalTradedVolume']
+                 x['totalTradedVolume'],
+                 x['buyPrice1'],
+                 x['sellPrice1']
                 ) for x in raw]
-    df = pd.DataFrame(filtered, columns= ['sym', 'ser', 'fv', 'prc', 'vol'])
+    df = pd.DataFrame(filtered, columns= ['sym', 'ser', 'fv', 'prc', 'vol', 'bid', 'ask'])
     return df
 
 
@@ -59,8 +61,9 @@ def get_gsec_securities():
     for bnd in bnds:
         row = mkt_df[mkt_df.sym == bnd.symbol]
         if len(row) > 0:
+            r = row.iloc[0]
             # print(row.iloc[0].prc)
-            ret.append(Security(bnd, row.iloc[0].prc, datetime.date.today(), row.iloc[0].vol))
+            ret.append(Security(bnd, r.prc, datetime.date.today(), r.vol, r.bid, r.ask))
     return ret
 
 # mkt_df = get_gsec_mktdata()
