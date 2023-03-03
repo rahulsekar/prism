@@ -40,11 +40,11 @@ class Bond(base.Product):
         ret = []
         i = 1
         mnths = int(12 / self.coupon_freq)
-        nxt = self.issue_date  - relativedelta(days=1) + relativedelta(months= i * mnths)
+        nxt = self.issue_date + relativedelta(months= i * mnths) - relativedelta(days=1)
         while nxt <= self.maturity_date:
             ret.append(nxt)
             i += 1
-            nxt = self.issue_date + relativedelta(months= i * mnths)
+            nxt = self.issue_date + relativedelta(months= i * mnths) - relativedelta(days=1)
         return tuple(ret)
 
     def cashflows(self) -> dict:
