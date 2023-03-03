@@ -40,7 +40,7 @@ class Bond(base.Product):
         ret = []
         i = 1
         mnths = int(12 / self.coupon_freq)
-        nxt = self.issue_date + relativedelta(months= i * mnths)
+        nxt = self.issue_date  - relativedelta(days=1) + relativedelta(months= i * mnths)
         while nxt <= self.maturity_date:
             ret.append(nxt)
             i += 1
