@@ -82,8 +82,8 @@ def get_gsec_securities():
             ret.append(Security(bnd, r.prc, datetime.date.today(), r.vol_cr * 1e7 / bnd.face_value, r.avg_prc, r.bid, r.ask))
     return ret
 
-mkt_df = get_gsec_mktdata_ccil()
-print(mkt_df)
+# mkt_df = get_gsec_mktdata_ccil()
+# print(mkt_df)
 # info_df =  get_gsec_info()
 # print(info_df)
 # bnds = get_gsec_bonds()
