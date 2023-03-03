@@ -33,6 +33,8 @@ def get_gsec_mktdata_ccil():
     zip_url = re.findall(
         'https://www\.ccilindia\.com/Research/Statistics/Lists/DailyDataForInfoVendors/Attachments/\d+/DFIV_\w+\.zip',
         res.text)[0]
+    grps = re.search("DFIV_(\d{2})_(\d{2})_(\d{4})\.zip", zip_url)
+    asof_date = datetime.date(int(grps.groups()[2]), int(grps.groups()[1]), int(grps.groups()[0]))
     res = requests.get(zip_url)
     zf = zipfile.ZipFile(BytesIO(res.content))
     outright_csv = zf.read([x for x in zf.namelist() if x.startswith('outright')][0])
@@ -42,7 +44,7 @@ def get_gsec_mktdata_ccil():
     df.columns = ['isin', 'vol_cr', 'prc', 'avg_prc']
     df['bid']= np.nan
     df['ask'] = np.nan
-    return df
+    return df, asof_date
 
 def add_info(row):
     dt = datetime.datetime.strptime(row.REDEMPTIONDATE, '%d-%b-%Y').date()
@@ -73,13 +75,13 @@ def get_gsec_bonds():
 
 def get_gsec_securities():
     bnds = get_gsec_bonds()
-    mkt_df = get_gsec_mktdata_ccil()
+    mkt_df, asof_date = get_gsec_mktdata_ccil()
     ret = []
     for bnd in bnds:
         row = mkt_df[mkt_df['isin'] == bnd.isin]
         if len(row) > 0:
             r = row.iloc[0]
-            ret.append(Security(bnd, r.prc, datetime.date.today(), r.vol_cr * 1e7 / bnd.face_value, r.avg_prc, r.bid, r.ask))
+            ret.append(Security(bnd, r.prc, asof_date, r.vol_cr * 1e7 / bnd.face_value, r.avg_prc, r.bid, r.ask))
     return ret
 
 # mkt_df = get_gsec_mktdata_ccil()

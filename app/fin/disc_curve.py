@@ -25,7 +25,7 @@ class DCFromBonds(base.DiscountCurve):
         popt, pcov = optimize.curve_fit(
             self.calibrate_func,
             {'bnd_secs': bnd_secs},
-            np.array([bnd_sec.price for bnd_sec in bnd_secs]),
+            np.array([bnd_sec.price + bnd_sec.product.accrued_interest(bnd_sec.asof_date) for bnd_sec in bnd_secs]),
             self.init_params_guess()
         )
         self.set_params(*popt)
