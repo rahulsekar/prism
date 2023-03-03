@@ -37,11 +37,12 @@ def get_gsec_mktdata_ccil():
     zf = zipfile.ZipFile(BytesIO(res.content))
     outright_csv = zf.read([x for x in zf.namelist() if x.startswith('outright')][0])
     df = pd.read_csv(BytesIO(outright_csv))
-    red_df = df[['ISIN', 'Volume (Cr.)', 'Last price', 'Wtd Avg Price']]
-    red_df.columns = ['isin', 'vol_cr', 'prc', 'avg_prc']
-    red_df['bid']= np.nan
-    red_df['ask'] = np.nan
-    return red_df
+    df.drop(df.columns.difference(['ISIN', 'Volume (Cr.)', 'Last price', 'Wtd Avg Price']),
+            axis=1, inplace=True)
+    df.columns = ['isin', 'vol_cr', 'prc', 'avg_prc']
+    df['bid']= np.nan
+    df['ask'] = np.nan
+    return df
 
 def add_info(row):
     dt = datetime.datetime.strptime(row.REDEMPTIONDATE, '%d-%b-%Y').date()
@@ -81,9 +82,9 @@ def get_gsec_securities():
             ret.append(Security(bnd, r.prc, datetime.date.today(), r.vol_cr * 1e7 / bnd.face_value, r.avg_prc, r.bid, r.ask))
     return ret
 
-# mkt_df = get_gsec_mktdata_ccil()
-# print(mkt_df)
-# info_df = get_gsec_info()
+mkt_df = get_gsec_mktdata_ccil()
+print(mkt_df)
+# info_df =  get_gsec_info()
 # print(info_df)
 # bnds = get_gsec_bonds()
 # print(len(bnds))
