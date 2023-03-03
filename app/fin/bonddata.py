@@ -78,7 +78,7 @@ def get_gsec_securities():
         row = mkt_df[mkt_df['isin'] == bnd.isin]
         if len(row) > 0:
             r = row.iloc[0]
-            ret.append(Security(bnd, r.prc, datetime.date.today(), r.vol_cr / bnd.face_value, r.avg_prc, r.bid, r.ask))
+            ret.append(Security(bnd, r.prc, datetime.date.today(), r.vol_cr * 1e7 / bnd.face_value, r.avg_prc, r.bid, r.ask))
     return ret
 
 # mkt_df = get_gsec_mktdata_ccil()
