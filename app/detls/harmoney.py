@@ -1,10 +1,11 @@
 import requests, io, json, datetime
+
+import app.detls.ccil
 from app.detls import store
-from app.fin import bonddata, bond
+from app.fin import bond
 
 from google.cloud import storage
 import pandas as pd
-import numpy as np
 
 
 def fetch_store_isins(s: set):
@@ -31,7 +32,7 @@ def get_traded_gsecs(start_dt: datetime.date, end_dt: datetime.date):
     s = set()
     dt = start_dt
     while dt < datetime.date(2023, 4, 30):
-        df, asof_date = bonddata.get_gsec_mktdata_ccil(dt)
+        df, asof_date = app.detls.ccil.get_gsec_mktdata_ccil(dt)
         if df is not None:
             s = s.union(set(df['isin'].tolist()))
         print(dt, len(s), end=" ")
