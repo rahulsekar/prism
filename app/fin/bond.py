@@ -11,11 +11,12 @@ class Bond(base.Product):
     def __init__(self,
                  coupon_pct: float,
                  maturity_date: datetime.date,
-                 issue_date: datetime.date,
+                 issue_date: datetime.date = None,
                  coupon_freq: int = 2,
                  isin: str = None,
                  symbol: str = None,
                  face_value: float = 100.0,
+                 issuer: str = None,
                  ):
 
         super().__init__(isin)
@@ -25,6 +26,7 @@ class Bond(base.Product):
         self.issue_date = issue_date
         self.coupon_freq = coupon_freq
         self.face_value = face_value
+        self.issuer = issuer
 
     def is_price_sane(self, price, asof_date:datetime.date = datetime.date.today(),
                       y_min: float = -0.0001, y_max: float = 0.25) -> bool:
@@ -35,16 +37,16 @@ class Bond(base.Product):
         return y1*y2 < 0.0
 
     def _coupon_dates(self) -> tuple:
-        if not self.coupon_freq:
+        if self.coupon_freq is None or self.coupon_freq == 0:
             return ()
         ret = []
-        i = 1
         mnths = int(12 / self.coupon_freq)
-        nxt = self.issue_date + relativedelta(months= i * mnths) - relativedelta(days=1)
-        while nxt <= self.maturity_date:
-            ret.append(nxt)
+        prev_dt = self.maturity_date
+        i = 0
+        while prev_dt > self.issue_date:
+            prev_dt = self.maturity_date - relativedelta(months=i * mnths)
+            ret.append(prev_dt)
             i += 1
-            nxt = self.issue_date + relativedelta(months= i * mnths) - relativedelta(days=1)
         return tuple(ret)
 
     def cashflows(self) -> dict:
@@ -96,8 +98,13 @@ class Bond(base.Product):
 
         return ret
 
-    def z_spread(self, yield_curve):
-        pass
+    def z_spread(self, yield_curve: base.DiscountCurve, dirty_price: float, asof_date: datetime.date):
+        zs = optimize.brentq(
+            lambda r: self.npv(disc_curve.DCSpread(yield_curve, r), asof_date) / dirty_price - 1.0,
+            -0.99,
+            1.00
+        )
+        return zs
 
 
 # bnd = Bond(5.5, datetime.date(2025, 8, 31), datetime.date(2020, 8, 31), 2)

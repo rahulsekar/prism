@@ -15,28 +15,30 @@ class ConstDC(base.DiscountCurve):
     def yld(self, dt, from_date: datetime.date = datetime.datetime.now()):
         return self.r
 
-    def discount_factor(self, dt: datetime.date, from_date: datetime.date = datetime.datetime.now()):
+    def discount_factor(self, dt: datetime.date, from_date: datetime.date = datetime.date.today()):
         return math.pow(1.0 + self.r, (from_date - dt).days / _DAYS_IN_YEAR)
 
 
 class DCFromBonds(base.DiscountCurve):
 
-    def __init__(self, bnd_secs: list):
-        popt, pcov = optimize.curve_fit(
-            self.calibrate_func,
-            {'bnd_secs': bnd_secs},
-            np.array([bnd_sec.price + bnd_sec.product.accrued_interest(bnd_sec.asof_date) for bnd_sec in bnd_secs]),
-            self.init_params_guess()
-        )
-        self.set_params(*popt)
+    def __init__(self, bnd_secs: list = None, params: dict = None):
+        if bnd_secs is not None:
+            self.bnd_secs = bnd_secs
+            result = optimize.least_squares(self.calibrate_func,self.init_params_guess(), loss="soft_l1", f_scale=.1)
+            self.set_params(*result.x)
+        elif params:
+            self.set_params(**params)
 
     def yld(self, dt, from_date: datetime.date = datetime.date.today()):
         yrs = (dt - from_date).days / _DAYS_IN_YEAR
         return math.pow(self.discount_factor(dt, from_date), -1.0 / yrs) - 1.0
 
-    def calibrate_func(self, bnd_secs, *params):
+    def calibrate_func(self, params: list):
         self.set_params(*params)
-        return [bnd_sec.product.npv(self, bnd_sec.asof_date) for bnd_sec in bnd_secs['bnd_secs']]
+        return [
+            bnd_sec.product.npv(self, bnd_sec.asof_date) - (bnd_sec.price + bnd_sec.product.accrued_interest(bnd_sec.asof_date))
+            for bnd_sec in self.bnd_secs
+        ]
 
     def set_params(self, *params):
         raise Exception('Unimplemented')
@@ -55,7 +57,7 @@ class NelsonSiegel(DCFromBonds):
     def init_params_guess(self):
         return [0.05, 0.0, 0.0, 2.0]
 
-    def discount_factor(self, dt: datetime.date, from_date: datetime.date = datetime.datetime.now()):
+    def discount_factor(self, dt: datetime.date, from_date: datetime.date = datetime.date.today()):
         yrs = (dt - from_date).days / 365.0
         m_tau = yrs / self.tau # m / tau
         exp_m_tau = np.exp(-m_tau)
@@ -66,3 +68,16 @@ class NelsonSiegel(DCFromBonds):
         if 1.0 + rate < 0.0:
             return 0
         return math.pow(1.0 + rate, -yrs)
+
+
+class DCSpread(base.DiscountCurve):
+    def __init__(self, base_dc: base.DiscountCurve, spread: float):
+        self.base_dc = base_dc
+        self.spread = spread
+
+    def yld(self, dt, from_date: datetime.date = datetime.date.today()):
+        return self.base_dc.yld(dt, from_date) + self.spread
+
+    def discount_factor(self, dt: datetime.date, from_date: datetime.date = datetime.datetime.now()):
+        return math.pow(1.0 + self.yld(dt, from_date), (from_date - dt).days / _DAYS_IN_YEAR)
+

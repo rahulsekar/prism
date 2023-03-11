@@ -10,6 +10,7 @@ Babel==2.12.1
 backcall==0.2.0
 beautifulsoup4==4.11.2
 bleach==6.0.0
+cachetools==5.3.0
 certifi==2022.12.7
 cffi==1.15.1
 charset-normalizer==3.0.1
@@ -23,6 +24,14 @@ executing==1.2.0
 fastjsonschema==2.16.3
 fonttools==4.38.0
 fqdn==1.5.1
+google-api-core==2.11.0
+google-auth==2.16.2
+google-cloud==0.34.0
+google-cloud-core==2.3.2
+google-cloud-storage==2.7.0
+google-crc32c==1.5.0
+google-resumable-media==2.4.1
+googleapis-common-protos==1.58.0
 idna==3.4
 ipykernel==6.21.2
 ipython==8.11.0
@@ -72,9 +81,12 @@ Pillow==9.4.0
 platformdirs==3.1.0
 prometheus-client==0.16.0
 prompt-toolkit==3.0.38
+protobuf==4.22.1
 psutil==5.9.4
 ptyprocess==0.7.0
 pure-eval==0.2.2
+pyasn1==0.4.8
+pyasn1-modules==0.2.8
 pycparser==2.21
 Pygments==2.14.0
 pyparsing==3.0.9
@@ -89,6 +101,7 @@ QtPy==2.3.0
 requests==2.28.2
 rfc3339-validator==0.1.4
 rfc3986-validator==0.1.1
+rsa==4.9
 scipy==1.10.1
 Send2Trash==1.8.0
 six==1.16.0
