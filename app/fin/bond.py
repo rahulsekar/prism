@@ -17,6 +17,9 @@ class Bond(base.Product):
                  symbol: str = None,
                  face_value: float = 100.0,
                  issuer: str = None,
+                 is_callable: bool = False,
+                 is_perpetual: bool = False,
+                 call_date: datetime.date = None
                  ):
 
         super().__init__(isin)
@@ -27,6 +30,9 @@ class Bond(base.Product):
         self.coupon_freq = coupon_freq
         self.face_value = face_value
         self.issuer = issuer
+        self.is_callable = is_callable
+        self.is_perpetual = is_perpetual
+        self.call_date = call_date
 
     def is_price_sane(self, price, asof_date:datetime.date = datetime.date.today(),
                       y_min: float = -0.0001, y_max: float = 0.25) -> bool:
@@ -36,21 +42,36 @@ class Bond(base.Product):
         y2 = self.npv(disc_curve.ConstDC(y_max), asof_date) / price - 1.0
         return y1*y2 < 0.0
 
+    def start_date(self):
+        return self.issue_date if self.issue_date is not None else datetime.date(2000, 1, 1)  #urgh!
+
+    def terminal_date(self):
+        mat = self.maturity_date
+        if mat is None:
+            if self.is_perpetual:
+                isd = self.start_date()
+                mat = datetime.date(isd.year + 100, isd.month, isd.day)
+            else:
+                raise Exception('Maturity unknown for a non-perpetual bond.')
+        return mat
+
     def _coupon_dates(self) -> tuple:
         if self.coupon_freq is None or self.coupon_freq == 0:
             return ()
         ret = []
         mnths = int(12 / self.coupon_freq)
-        prev_dt = self.maturity_date
+        t_dt = prev_dt = self.terminal_date()
+        s_dt = self.start_date()
         i = 0
-        while prev_dt > self.issue_date:
-            prev_dt = self.maturity_date - relativedelta(months=i * mnths)
+        while prev_dt > s_dt:
             ret.append(prev_dt)
             i += 1
+            prev_dt = t_dt - relativedelta(months=i * mnths)
+
         return tuple(ret)
 
     def cashflows(self) -> dict:
-        mat = self.maturity_date
+        mat = self.terminal_date()
         ret = {mat: self.face_value}
         if not self.coupon_freq:
             return ret
@@ -61,10 +82,10 @@ class Bond(base.Product):
         return ret
 
     def accrued_interest(self, dt: datetime.date) -> float:
-        if not self.coupon_freq or dt <= self.issue_date:
+        if not self.coupon_freq or dt <= self.start_date():
             return 0
 
-        dts = list(self._coupon_dates()) + [self.issue_date]
+        dts = list(self._coupon_dates()) + [self.start_date()]
         mx = max([d for d in dts if d < dt])
         cpn = self.face_value * self.coupon_pct / 100.0 / self.coupon_freq
         prd = 12 / self.coupon_freq * 30

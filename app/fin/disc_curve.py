@@ -24,7 +24,7 @@ class DCFromBonds(base.DiscountCurve):
     def __init__(self, bnd_secs: list = None, params: dict = None):
         if bnd_secs is not None:
             self.bnd_secs = bnd_secs
-            result = optimize.least_squares(self.calibrate_func,self.init_params_guess(), loss="soft_l1", f_scale=.1)
+            result = optimize.least_squares(self.calibrate_func,self.init_params_guess(), loss="soft_l1", f_scale=5)
             self.set_params(*result.x)
         elif params:
             self.set_params(**params)
