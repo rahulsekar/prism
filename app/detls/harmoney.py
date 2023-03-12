@@ -6,7 +6,6 @@ from app.fin import bond
 
 from google.cloud import storage
 import pandas as pd
-import numpy as np
 
 
 def fetch_store_isins(s: set, batch_id: str):
