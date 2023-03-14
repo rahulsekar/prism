@@ -5,7 +5,7 @@ from app.fin.bond import BondSecurity
 
 
 def get_bonds(isins: list, default_issue_date: datetime.date = datetime.date.today()):
-    return harmoney.get_bonds(isins, default_issue_date)
+    return harmoney.get_bonds(isins)
     # return nseindia.get_gsec_bonds(isins)
 
 
