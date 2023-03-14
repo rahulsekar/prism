@@ -21,13 +21,13 @@ def plot_yield_curve(dates: list, plot_ytms=False, annotate=False):
       print(dt, len(gsecs), (dc.b0, dc.b1, dc.b2, dc.tau))
       data = []
       for gsec in gsecs:
-        p = gsec.product
-        dp = gsec.price + gsec.product.accrued_interest(gsec.asof_date)
-        ytm = p.yield_to_maturity(gsec.price + gsec.product.accrued_interest(gsec.asof_date), asof_date)
-        ns_prc = p.npv(dc, gsec.asof_date)
+        b = gsec.bond
+        dp = gsec.dirty_price()
+        ytm = gsec.ytm()
+        ns_prc = b.npv(dc, gsec.asof_date)
         data.append(
-          [dt, p.isin, p.symbol, p.coupon_pct, p.maturity_date, gsec.price, ytm, gsec.volume, gsec.avg_price, p.face_value,
-           dp, p.issue_date, ns_prc, ns_prc - gsec.price])
+          [dt, b.isin, b.symbol, b.coupon_pct, b.maturity_date, gsec.price, ytm, gsec.volume, gsec.avg_price, b.face_value,
+           dp, b.issue_date, ns_prc, ns_prc - gsec.price])
 
       yrs = [0.33, 0.5, 1, 3, 5, 10, 20, 30, 40]
       rts = [dc.yld(asof_date + rd.relativedelta(days=int(y*365)))*100 for y in yrs]

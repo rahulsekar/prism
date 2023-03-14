@@ -5,6 +5,7 @@ from scipy import optimize
 #locals
 from app.fin import disc_curve, base
 
+_TAXFREE_CPN_ADJUSTMENT = 0.67
 
 class Bond(base.Product):
 
@@ -19,6 +20,7 @@ class Bond(base.Product):
                  issuer: str = None,
                  is_callable: bool = False,
                  is_perpetual: bool = False,
+                 is_taxable: bool = True,
                  call_date: datetime.date = None
                  ):
 
@@ -32,6 +34,7 @@ class Bond(base.Product):
         self.issuer = issuer
         self.is_callable = is_callable
         self.is_perpetual = is_perpetual
+        self.is_taxable = is_taxable
         self.call_date = call_date
 
     def is_price_sane(self, price, asof_date:datetime.date = datetime.date.today(),
@@ -45,22 +48,22 @@ class Bond(base.Product):
     def start_date(self):
         return self.issue_date if self.issue_date is not None else datetime.date(2000, 1, 1)  #urgh!
 
-    def terminal_date(self):
-        mat = self.maturity_date
-        if mat is None:
-            if self.is_perpetual:
-                isd = self.start_date()
-                mat = datetime.date(isd.year + 100, isd.month, isd.day)
-            else:
-                raise Exception('Maturity unknown for a non-perpetual bond.')
-        return mat
+    def redemption_date(self):
+        if self.is_perpetual:
+            isd = self.start_date()
+            return datetime.date(isd.year + 100, isd.month, isd.day)
+
+        if self.maturity_date is None:
+            raise Exception('Maturity unknown for a non-perpetual bond.')
+
+        return self.maturity_date
 
     def _coupon_dates(self) -> tuple:
         if self.coupon_freq is None or self.coupon_freq == 0:
             return ()
         ret = []
         mnths = int(12 / self.coupon_freq)
-        t_dt = prev_dt = self.terminal_date()
+        t_dt = prev_dt = self.redemption_date()
         s_dt = self.start_date()
         i = 0
         while prev_dt > s_dt:
@@ -71,7 +74,7 @@ class Bond(base.Product):
         return tuple(ret)
 
     def cashflows(self) -> dict:
-        mat = self.terminal_date()
+        mat = self.redemption_date()
         ret = {mat: self.face_value}
         if not self.coupon_freq:
             return ret
@@ -99,8 +102,6 @@ class Bond(base.Product):
         return ret
 
     def yield_to_maturity(self, dirty_price: float, asof_date: datetime.date = datetime.date.today()):
-        if not self.is_price_sane(dirty_price, asof_date, -0.99, 1.00):
-            return None
         apr = optimize.brentq(
             lambda r: self.npv(disc_curve.ConstDC(r), asof_date) / dirty_price - 1.0,
             -0.99, # -99%
@@ -126,6 +127,38 @@ class Bond(base.Product):
             1.00
         )
         return zs
+
+
+class BondSecurity(base.Security):
+    def __init__(self, b: Bond, price: float, asof_date: datetime.date, volume: float = None, avg_price: float = None):
+        super().__init__(b, price, asof_date, volume, avg_price)
+        self.bond = b
+        self.is_price_sane = True
+
+        if self.bond.coupon_pct > 0 and self.bond.coupon_freq is None:
+            self.bond.coupon_freq = 2
+
+        if not self.bond.is_taxable:
+            self.bond.coupon_pct /= _TAXFREE_CPN_ADJUSTMENT
+
+        if not self.bond.is_price_sane(self.price, asof_date, -0.1, .25):
+            if self.bond.is_price_sane(self.price / 100 * self.bond.face_value, asof_date, -0.1, .4):
+                self.bond.face_value = 100
+            else:
+                self.is_price_sane = False
+
+    def dirty_price(self):
+        return self.price + self.bond.accrued_interest(self.asof_date)
+
+    def ytm(self):
+        if not self.is_price_sane:
+            return None
+        return self.bond.yield_to_maturity(self.dirty_price(), self.asof_date)
+
+    def zs(self, dc: base.DiscountCurve):
+        if not self.is_price_sane:
+            return None
+        return self.bond.z_spread(dc, self.dirty_price(), self.asof_date)
 
 
 # bnd = Bond(5.5, datetime.date(2025, 8, 31), datetime.date(2020, 8, 31), 2)

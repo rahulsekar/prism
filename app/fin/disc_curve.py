@@ -30,6 +30,8 @@ class DCFromBonds(base.DiscountCurve):
             self.set_params(**params)
 
     def yld(self, dt, from_date: datetime.date = datetime.date.today()):
+        if dt == from_date:
+            return 1.0
         yrs = (dt - from_date).days / _DAYS_IN_YEAR
         return math.pow(self.discount_factor(dt, from_date), -1.0 / yrs) - 1.0
 

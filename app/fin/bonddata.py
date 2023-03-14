@@ -1,7 +1,7 @@
 import datetime
 
 from app.detls import harmoney, ccil, nseindia, bseindia
-from app.fin.base import Security
+from app.fin.bond import BondSecurity
 
 
 def get_bonds(isins: list, default_issue_date: datetime.date = datetime.date.today()):
@@ -20,9 +20,9 @@ def _make_securities(mkt_df, asof_date, isin_prefix=None):
         row = mkt_df[mkt_df['isin'] == bnd.isin]
         if len(row) > 0:
             r = row.iloc[0]
-            ttv = r.vol_cr * 1e7 / bnd.face_value if 'vol_cr' in r else 0
+            ttv = r.vol_cr * 1e7 / bnd.face_value if 'vol_cr' in r else (r.ttv if 'ttv' in r else 0)
             avg_prc = r.avg_prc if 'avg_prc' in r else r.prc
-            ret.append(Security(bnd, r.prc, asof_date, ttv, avg_prc))
+            ret.append(BondSecurity(bnd, r.prc, asof_date, ttv, avg_prc))
     return ret, asof_date
 
 

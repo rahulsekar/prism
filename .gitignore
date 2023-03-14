@@ -1,6 +1,7 @@
 app/data/
 app/static/img/
 app/static/json/
+app/detls/harmoney_private.py
 creds.json
 #emacs
 *~
